@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Runtime data (database, sessions, SSL keys) and user uploads
+data/
+uploads/
+*.pem
+
+# Local scratch / debug work and backups
+scratch/
+*.backup
+*.recovered*
+*.bak*
+*.tmp*
+
+# Test scripts with real credentials
+test-*.js
+
+# Env / OS
+.env
+.env.*
+.DS_Store
+Thumbs.db

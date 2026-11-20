@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WorkPulse — Smarter Attendance. Better Work Management.</title>
+  <meta name="description" content="WorkPulse is a premium corporate office attendance and workforce management SaaS platform featuring GPS location check-in, manual shift checkout, and Excel integration.">
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/login.css">
+</head>
+<body class="login-body">
+
+  <main class="login-split-card" aria-label="WorkPulse Portal Access">
+
+    <!-- ======================================================================
+         LEFT PANEL: BRAND STORY & CLASSICAL CORPORATE SHOWCASE
+         ====================================================================== -->
+    <section class="login-showcase-panel">
+      <div>
+        <!-- Brand Logo & Name -->
+        <div class="brand-header-row">
+          <div class="brand-logo-frame">
+            <img src="assets/logo.png" alt="WorkPulse Logo" width="54" height="54">
+          </div>
+          <div class="brand-name-group">
+            <span class="brand-display-title">WorkPulse</span>
+            <span class="brand-tagline-sub">Smart Workforce Management</span>
+          </div>
+        </div>
+
+        <!-- Narrative Showcase -->
+        <div class="showcase-narrative">
+          <h1 class="showcase-headline">
+            Smarter Attendance.
+            <span>Better Work Management.</span>
+          </h1>
+          <p class="showcase-desc">
+            A timeless, executive-grade platform engineered to streamline office operations, staff rosters, shift checkouts, and GPS-verified presence.
+          </p>
+
+          <ul class="showcase-feature-list">
+            <li class="showcase-feature-item">
+              <span class="feature-check-icon">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              <span><strong>Browser GPS Verification:</strong> Precision coordinate capture with boundary checks</span>
+            </li>
+            <li class="showcase-feature-item">
+              <span class="feature-check-icon">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              <span><strong>Manual Shift Checkout:</strong> Shift remains active until staff member manually checks out</span>
+            </li>
+            <li class="showcase-feature-item">
+              <span class="feature-check-icon">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              <span><strong>Audit Calendar Engine:</strong> Green, Brown, Red, Orange & Sunday Gray standard</span>
+            </li>
+            <li class="showcase-feature-item">
+              <span class="feature-check-icon">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              <span><strong>Dedicated Excel Importer:</strong> Validated batch onboarding with template generation</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="showcase-footer-note">
+        &copy; 2026 WorkPulse Corporation. Authorized personnel only. All access logged.
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         RIGHT PANEL: INTERACTIVE DUAL LOGIN (ADMIN | STAFF)
+         ====================================================================== -->
+    <section class="login-form-panel">
+      <!-- Title & Subtitle -->
+      <h2 class="login-panel-title classical-title" id="loginTitle">Administrator Portal</h2>
+      <p class="login-panel-subtitle" id="loginSubtitle">Sign in with master credentials to access the Executive Console.</p>
+
+      <!-- Dual Mode Switcher -->
+      <div class="login-role-selector" role="tablist" aria-label="Portal Mode">
+        <button type="button" class="role-tab-btn active" id="roleTabAdmin" role="tab" aria-selected="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <span>Admin Login</span>
+        </button>
+        <button type="button" class="role-tab-btn" id="roleTabStaff" role="tab" aria-selected="false">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>Staff Login</span>
+        </button>
+      </div>
+
+      <!-- Error Notification Banner -->
+      <div class="login-error-banner" id="loginErrorBanner" role="alert">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="loginErrorText">Invalid credentials provided.</span>
+      </div>
+
+      <!-- Login Form -->
+      <form id="mainLoginForm" novalidate>
+        <div class="wp-form-group">
+          <label class="wp-label" for="loginIdentifier" id="identifierLabel">Admin Corporate Email</label>
+          <input type="text" id="loginIdentifier" class="wp-input" placeholder="admin@workpulse.com" required autocomplete="username">
+        </div>
+
+        <div class="wp-form-group">
+          <label class="wp-label" for="loginPassword">Account Password</label>
+          <div class="password-input-wrap">
+            <input type="password" id="loginPassword" class="wp-input" placeholder="Enter account password" required autocomplete="current-password">
+            <button type="button" class="pwd-toggle-btn" id="pwdToggleBtn" aria-label="Toggle password visibility">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="3" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="login-extra-row">
+          <label class="remember-label">
+            <input type="checkbox" id="rememberMeCheckbox">
+            <span>Remember credentials</span>
+          </label>
+          <a href="#forgot" class="forgot-link" id="forgotPwdLink">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="wp-btn wp-btn-gold" id="loginSubmitBtn" style="width: 100%; justify-content: center; padding: 13px;">
+          Sign In to Admin Console &rarr;
+        </button>
+      </form>
+    </section>
+
+  </main>
+
+  <!-- Forgot Password Modal -->
+  <dialog class="wp-modal" id="forgotPwdModal" style="max-width: 480px; width: 90%;">
+    <div class="wp-modal-header">
+      <div class="wp-modal-title" id="forgotModalTitle">Reset Account Password</div>
+      <button type="button" class="wp-modal-close" id="btnCloseForgotModal" onclick="document.getElementById('forgotPwdModal').close();">&times;</button>
+    </div>
+    <div class="wp-modal-body">
+      <!-- Status message alert -->
+      <div id="forgotStatusAlert" style="display: none; padding: 10px 14px; border-radius: 6px; font-size: 0.85rem; margin-bottom: 14px;"></div>
+
+      <!-- Step 1: Request Code -->
+      <form id="forgotStep1Form">
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 16px;">
+          Enter your registered Administrator email or Staff email / mobile / ID. A 6-digit recovery code will be generated.
+        </p>
+        <div class="wp-form-group">
+          <label class="wp-label" for="forgotIdentifier">Corporate Email, Mobile, or Staff ID</label>
+          <input type="text" id="forgotIdentifier" class="wp-input" placeholder="e.g. admin@workpulse.com or Staff ID" required>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+          <button type="button" class="wp-btn wp-btn-secondary" onclick="document.getElementById('forgotPwdModal').close();">Cancel</button>
+          <button type="submit" class="wp-btn wp-btn-primary" id="btnSendResetCode">Send Recovery Code</button>
+        </div>
+      </form>
+
+      <!-- Step 2: Enter Code & New Password -->
+      <form id="forgotStep2Form" style="display: none;">
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 16px;">
+          Enter the 6-digit recovery code and specify your new secure account password.
+        </p>
+        <div class="wp-form-group">
+          <label class="wp-label" for="resetTokenInput">6-Digit Recovery Code</label>
+          <input type="text" id="resetTokenInput" class="wp-input" placeholder="e.g. 123456" maxlength="8" required>
+        </div>
+        <div class="wp-form-group">
+          <label class="wp-label" for="newPasswordInput">New Password</label>
+          <input type="password" id="newPasswordInput" class="wp-input" placeholder="Minimum 6 characters" required minlength="6">
+        </div>
+        <div class="wp-form-group">
+          <label class="wp-label" for="confirmPasswordInput">Confirm New Password</label>
+          <input type="password" id="confirmPasswordInput" class="wp-input" placeholder="Re-enter new password" required minlength="6">
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+          <button type="button" class="wp-btn wp-btn-secondary" id="btnBackToStep1">&larr; Back</button>
+          <button type="submit" class="wp-btn wp-btn-gold" id="btnConfirmReset">Update Password</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- Scripts -->
+  <script src="js/state.js"></script>
+  <script src="js/login.js"></script>
+</body>
+</html>

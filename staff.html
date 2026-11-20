@@ -1,0 +1,1745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Workspace — WorkPulse Corporate Employee Platform</title>
+  <meta name="description" content="Corporate staff self-service workspace with project management, subtasks, interactive Kanban, Gantt timeline, browser GPS attendance, real-time shift stopwatch, and color-coded monthly calendar.">
+  <link rel="icon" href="assets/logo.png" type="image/png">
+
+  <!-- Google Fonts: Playfair Display, Cinzel & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/flatpickr.min.css">
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/staff.css">
+
+  <!-- Client-Side Immediate Authentication Guard for Staff Portal -->
+  <script>
+    (function() {
+      try {
+        let token = localStorage.getItem('workpulse_session_token');
+        if (!token && document.cookie) {
+          const match = document.cookie.match(/(?:^|;\s*)wp_session=([^;]+)/);
+          if (match) {
+            token = decodeURIComponent(match[1]);
+            localStorage.setItem('workpulse_session_token', token);
+          }
+        }
+        const sessionStr = localStorage.getItem('workpulse_session_v2');
+        const session = sessionStr ? JSON.parse(sessionStr) : null;
+        const role = (session && (session.role || (session.user && session.user.role) || '')).toLowerCase();
+        if (session && role !== 'staff') {
+          window.location.replace('index.html?error=staff_required');
+          return;
+        }
+        if (!token) {
+          window.location.replace('index.html?error=staff_required');
+          return;
+        }
+      } catch (e) {
+        window.location.replace('index.html?error=staff_required');
+      }
+    })();
+  </script>
+</head>
+<body class="staff-page-body">
+
+  <div class="staff-layout" id="staff-app-layout">
+
+    <!-- Mobile Backdrop Overlay -->
+    <div class="sidebar-backdrop" id="staff-sidebar-backdrop"></div>
+
+    <!-- ====================================================================
+         1. COLLAPSIBLE EXECUTIVE LEFT SIDEBAR
+         ==================================================================== -->
+    <aside class="staff-sidebar" id="staff-sidebar" aria-label="Staff Corporate Navigation">
+      <div class="sidebar-nav-container">
+        
+        <!-- Brand & Logo -->
+        <div class="sidebar-header">
+          <a href="#dashboard" class="sidebar-brand-link" id="staff-logo-home" title="WorkPulse — Return to Dashboard">
+            <div class="sidebar-logo-frame">
+              <img src="assets/logo.png" alt="WorkPulse Logo" width="130" height="38">
+            </div>
+            <div class="sidebar-brand-meta">
+              <div class="sidebar-brand-name">WorkPulse</div>
+              <span class="sidebar-brand-sub">Employee Workspace</span>
+            </div>
+          </a>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="sidebar-menu" id="staff-sidebar-nav">
+          
+          <div class="nav-section-label">Workspace</div>
+          <a href="#dashboard" class="sidebar-nav-item active" data-view="dashboard" id="nav-item-dashboard">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            <span>Dashboard Overview</span>
+          </a>
+
+          <div class="nav-section-label">Work & Projects</div>
+          <a href="#projects" class="sidebar-nav-item" data-view="projects" id="nav-item-projects">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            <span>My Projects</span>
+            <span class="nav-badge-count" id="badge-my-projects">0</span>
+          </a>
+          <a href="#tasks" class="sidebar-nav-item" data-view="tasks" id="nav-item-tasks">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1"></rect><path d="M9 14l2 2 4-4"></path></svg>
+            <span>My Tasks & Subtasks</span>
+            <span class="nav-badge-count" id="badge-my-tasks">0</span>
+          </a>
+          <a href="#kanban" class="sidebar-nav-item" data-view="kanban" id="nav-item-kanban">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="18" rx="1"></rect><rect x="14" y="3" width="7" height="12" rx="1"></rect></svg>
+            <span>Kanban Board</span>
+          </a>
+          <a href="#gantt" class="sidebar-nav-item" data-view="gantt" id="nav-item-gantt">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="4" y1="6" x2="16" y2="6"></line><line x1="8" y1="12" x2="20" y2="12"></line><line x1="6" y1="18" x2="14" y2="18"></line></svg>
+            <span>Gantt Timeline</span>
+          </a>
+          <a href="#reports" class="sidebar-nav-item" data-view="reports" id="nav-item-reports">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            <span>Daily Work Reports</span>
+          </a>
+          <a href="#meetings" class="sidebar-nav-item" data-view="meetings" id="nav-item-meetings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <span>Meetings & Briefings</span>
+            <span class="nav-badge-count" id="badge-my-meetings">0</span>
+          </a>
+          <a href="#reviews" class="sidebar-nav-item" data-view="reviews" id="nav-item-reviews">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            <span>My Reviews</span>
+            <span class="nav-badge-count" id="badge-my-reviews">0</span>
+          </a>
+          <a href="#updates" class="sidebar-nav-item" data-view="updates" id="nav-item-updates">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+            <span>Comments & Updates</span>
+          </a>
+
+          <div class="nav-section-label">Attendance & Time</div>
+          <a href="#attendance" class="sidebar-nav-item" data-view="attendance" id="nav-item-attendance">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span>Desk Punch & Stopwatch</span>
+            <span class="nav-shift-dot" id="sidebar-shift-dot"></span>
+          </a>
+          <a href="#calendar" class="sidebar-nav-item" data-view="calendar" id="nav-item-calendar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <span>Attendance Calendar</span>
+          </a>
+          <a href="#leaves" class="sidebar-nav-item" data-view="leaves" id="nav-item-leaves">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            <span>Leave Requests</span>
+            <span class="nav-badge-count" id="badge-my-leaves">0</span>
+          </a>
+          <a href="#wfh" class="sidebar-nav-item" data-view="wfh" id="nav-item-wfh">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            <span>Work From Home</span>
+            <span class="nav-badge-count" id="badge-my-wfh">0</span>
+          </a>
+
+          <!-- Dynamic Admin Integration (Assigned Leads & Miscellaneous) -->
+          <div class="nav-section-label" id="section-label-dynamic" style="display:none;">Assigned Modules</div>
+          <a href="#leads" class="sidebar-nav-item" data-view="leads" id="nav-item-leads" style="display:none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+            <span>Assigned Leads (CRM)</span>
+            <span class="nav-badge-count" id="badge-my-leads">0</span>
+          </a>
+          <a href="#misc" class="sidebar-nav-item" data-view="misc" id="nav-item-misc" style="display:none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+            <span>General & Office Hub</span>
+            <span class="nav-badge-count" id="badge-my-misc">0</span>
+          </a>
+
+          <div class="nav-section-label">Account</div>
+          <a href="#profile" class="sidebar-nav-item" data-view="profile" id="nav-item-profile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <span>Profile & Settings</span>
+          </a>
+        </nav>
+      </div>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <div class="staff-profile-chip" id="sidebar-staff-chip" role="button" tabindex="0" title="View & Edit Profile">
+          <div class="staff-avatar-circle" id="sidebar-staff-avatar">--</div>
+          <div class="staff-info-meta">
+            <span class="staff-name-text" id="sidebar-staff-name">Staff Member</span>
+            <span class="staff-role-text" id="sidebar-staff-role">Employee</span>
+          </div>
+        </div>
+        <button class="sidebar-logout-btn" id="btn-sidebar-logout" title="Sign Out of Portal">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ====================================================================
+         2. MAIN OPERATIONAL STAGE
+         ==================================================================== -->
+    <main class="staff-main-stage">
+      
+      <!-- Topbar -->
+      <header class="staff-topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu-toggle" id="staff-mobile-menu-btn" aria-label="Toggle Navigation Menu">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+          </button>
+          <button class="sidebar-collapse-toggle" id="staff-sidebar-toggle-btn" aria-label="Collapse / Expand Sidebar" title="Collapse / Expand Sidebar">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+          </button>
+          <h1 class="topbar-page-title" id="staff-page-heading">Workspace Dashboard</h1>
+          
+          <!-- Live Quick Shift Status Pill in Topbar -->
+          <button type="button" class="staff-quick-shift-pill" id="staff-quick-shift-btn" title="View Shift & Check-In Details">
+            <span class="quick-shift-dot" id="quick-shift-dot"></span>
+            <span id="quick-shift-label">Checked Out</span>
+          </button>
+        </div>
+
+        <div class="topbar-right">
+          <div class="topbar-search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="staff-global-search" placeholder="Search projects, tasks, meetings...">
+          </div>
+
+          <div class="topbar-date-badge" id="staff-topbar-clock">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span id="topbar-live-clock-text">Mon, Sep 21, 2026</span>
+          </div>
+
+          <!-- Notification Bell -->
+          <div style="position: relative;">
+            <button class="notification-bell-btn" id="staff-notif-toggle-btn" aria-label="Notifications" title="Staff Notifications">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+              <span class="notif-unread-dot" id="staff-notif-badge" style="display:none;">0</span>
+            </button>
+            
+            <div class="notification-dropdown" id="staff-notif-dropdown" style="display:none;">
+              <div class="notif-dropdown-header">
+                <span>Corporate Notifications</span>
+                <button class="btn btn-ghost btn-sm" id="btn-staff-clear-notifs" style="color: #FFFFFF; font-size: 0.72rem;">Mark all read</button>
+              </div>
+              <div class="notif-dropdown-list" id="staff-notif-list">
+                <!-- Dynamically populated via staff.js -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Profile Pill in Topbar -->
+          <div class="staff-topbar-profile" id="staff-topbar-user" role="button" tabindex="0" title="View Account Profile">
+            <div class="staff-avatar-mini" id="nav-staff-avatar">--</div>
+            <div class="staff-topbar-meta">
+              <span class="staff-topbar-name" id="nav-staff-name">Staff Member</span>
+              <span class="staff-topbar-role" id="nav-staff-position">Employee</span>
+            </div>
+          </div>
+
+          <button class="btn btn-secondary btn-sm" id="btn-staff-logout" title="Sign Out of Portal">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            <span>Sign Out</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Content Area with Multi-View Architecture -->
+      <div class="staff-content-area" id="staff-content-area">
+
+        <!-- Corporate Letterhead (Rendered only on Print / PDF) -->
+        <div class="print-only-letterhead">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <img src="assets/logo.png" alt="WorkPulse" style="height: 42px; width: auto;">
+            <div>
+              <div style="font-family: var(--font-serif); font-size: 1.4rem; font-weight: 800; color: var(--navy-dark); letter-spacing: 0.5px;">WorkPulse</div>
+              <div style="font-size: 0.76rem; color: #64748B; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Staff Self-Service Attendance Timesheet</div>
+            </div>
+          </div>
+          <div style="text-align: right; font-size: 0.78rem; color: #475569;">
+            <div style="font-weight: 700; color: var(--navy-dark);">Official Employee Record</div>
+            <div>San Francisco Headquarters</div>
+            <div style="color: #059669; font-weight: 600;">Verified GPS Telemetry</div>
+          </div>
+        </div>
+
+        <!-- ================================================================
+             VIEW 1: DASHBOARD OVERVIEW (Requirement 2)
+             ================================================================ -->
+        <div class="staff-view-pane active" id="view-dashboard">
+          
+          <!-- Meeting Alert Banner (Visible when upcoming meetings exist) -->
+          <div id="staff-meeting-alert-banner" class="meeting-alert-banner" style="display: none;">
+            <div class="meeting-alert-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            </div>
+            <div class="meeting-alert-content">
+              <div class="meeting-alert-title" id="meeting-alert-title">Upcoming Executive Meeting Scheduled</div>
+              <div class="meeting-alert-desc" id="meeting-alert-desc">Strategy Briefing scheduled for today at 10:30 AM</div>
+            </div>
+            <button class="btn btn-sm btn-outline-gold" id="btn-jump-to-meetings" style="font-size:0.75rem; white-space:nowrap;">View Meeting Details</button>
+          </div>
+
+          <!-- Hero Welcome Banner for Work & Projects -->
+          <div class="staff-hero-banner">
+            <div class="staff-hero-content">
+              <div class="staff-hero-welcome">WorkPulse Corporate Employee Workspace</div>
+              <h1 class="staff-hero-title">Welcome back, <span id="hero-staff-first-name">Staff</span></h1>
+              <p class="staff-hero-desc">
+                Monitor assigned projects, execute tasks and subtasks, review Gantt timelines, collaborate on deliverables, and manage daily attendance.
+              </p>
+            </div>
+            <div class="staff-hero-actions">
+              <button class="btn-hero-action btn-hero-gold" id="btn-hero-switch-attendance">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                <span>Punch Attendance</span>
+              </button>
+              <button class="btn-hero-action btn-hero-primary" id="btn-hero-work-report">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                <span>Daily Work Report</span>
+              </button>
+              <button class="btn-hero-action btn-hero-secondary" id="btn-hero-view-projects">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                <span>My Projects</span>
+              </button>
+              <button class="btn-hero-action btn-hero-secondary" id="btn-hero-work-request">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>
+                <span>Request Leave / WFH</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Summary KPI Cards Grid -->
+          <div class="work-kpi-grid" id="staff-work-kpi-grid">
+            <div class="work-kpi-card" id="kpi-card-projects" style="border-top: 3px solid var(--navy-dark);">
+              <div class="work-kpi-card-header">
+                <span class="work-kpi-label">Active Projects</span>
+                <div class="work-kpi-icon" style="background: rgba(7, 26, 43, 0.08); color: var(--navy-dark);">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                </div>
+              </div>
+              <div class="work-kpi-value" id="kpi-work-projects-count">0</div>
+              <div class="work-kpi-subtext" id="kpi-work-projects-sub">0 active assignments</div>
+            </div>
+
+            <div class="work-kpi-card" id="kpi-card-tasks" style="border-top: 3px solid var(--royal-blue);">
+              <div class="work-kpi-card-header">
+                <span class="work-kpi-label">Pending Tasks</span>
+                <div class="work-kpi-icon" style="background: rgba(29, 95, 143, 0.1); color: var(--royal-blue);">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1"></rect><path d="M9 14l2 2 4-4"></path></svg>
+                </div>
+              </div>
+              <div class="work-kpi-value" id="kpi-work-tasks-count" style="color: var(--royal-blue);">0</div>
+              <div class="work-kpi-subtext" id="kpi-work-subtasks-sub">0 subtasks remaining</div>
+            </div>
+
+            <div class="work-kpi-card" id="kpi-card-deadlines" style="border-top: 3px solid #D97706;">
+              <div class="work-kpi-card-header">
+                <span class="work-kpi-label">Today's Deadlines</span>
+                <div class="work-kpi-icon" style="background: rgba(217, 119, 6, 0.1); color: #D97706;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                </div>
+              </div>
+              <div class="work-kpi-value" id="kpi-work-deadlines-count" style="color: #D97706;">0</div>
+              <div class="work-kpi-subtext" id="kpi-work-deadlines-sub">0 urgent deadlines</div>
+            </div>
+
+            <div class="work-kpi-card" id="kpi-card-meetings" style="border-top: 3px solid #059669;">
+              <div class="work-kpi-card-header">
+                <span class="work-kpi-label">Upcoming Meetings</span>
+                <div class="work-kpi-icon" style="background: rgba(5, 150, 105, 0.1); color: #059669;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                </div>
+              </div>
+              <div class="work-kpi-value" id="kpi-work-meetings-count" style="color: #059669;">0</div>
+              <div class="work-kpi-subtext" id="kpi-work-meetings-sub">None scheduled today</div>
+            </div>
+          </div>
+
+          <!-- Operational Split Grid (Requirement 2) -->
+          <div class="dashboard-operational-grid">
+            
+            <!-- Left Column: Active Projects & Priority Tasks -->
+            <div class="d-flex flex-column gap-4">
+              
+              <!-- Panel: Active Assigned Projects -->
+              <div class="dash-panel-card">
+                <div class="dash-panel-header">
+                  <div class="dash-panel-title-wrap">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--royal-blue);"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                    <h3 class="dash-panel-title">Active Assigned Projects</h3>
+                  </div>
+                  <a class="dash-panel-link" id="link-dash-all-projects">View All Projects &rarr;</a>
+                </div>
+                <div class="dash-mini-list" id="dash-active-projects-list">
+                  <!-- Populated dynamically -->
+                </div>
+              </div>
+
+              <!-- Panel: Assigned Tasks & Today's Priorities -->
+              <div class="dash-panel-card">
+                <div class="dash-panel-header">
+                  <div class="dash-panel-title-wrap">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #D97706;"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1"></rect><path d="M9 14l2 2 4-4"></path></svg>
+                    <h3 class="dash-panel-title">Assigned Tasks & Today's Priorities</h3>
+                  </div>
+                  <a class="dash-panel-link" id="link-dash-all-tasks">View All Tasks &rarr;</a>
+                </div>
+                <div class="dash-mini-list" id="dash-priority-tasks-list">
+                  <!-- Populated dynamically -->
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Right Column: Meetings, Updates, Notifications -->
+            <div class="d-flex flex-column gap-4">
+              
+              <!-- Panel: Upcoming Meetings -->
+              <div class="dash-panel-card">
+                <div class="dash-panel-header">
+                  <div class="dash-panel-title-wrap">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #059669;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <h3 class="dash-panel-title">Upcoming Meetings</h3>
+                  </div>
+                  <a class="dash-panel-link" id="link-dash-all-meetings">Schedule &rarr;</a>
+                </div>
+                <div class="dash-mini-list" id="dash-upcoming-meetings-list">
+                  <!-- Populated dynamically -->
+                </div>
+              </div>
+
+              <!-- Panel: Recent Project Updates & Comments -->
+              <div class="dash-panel-card">
+                <div class="dash-panel-header">
+                  <div class="dash-panel-title-wrap">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--navy-dark);"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                    <h3 class="dash-panel-title">Recent Project Updates</h3>
+                  </div>
+                  <a class="dash-panel-link" id="link-dash-all-updates">Discussions &rarr;</a>
+                </div>
+                <div class="dash-mini-list" id="dash-recent-updates-list">
+                  <!-- Populated dynamically -->
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- ================================================================
+             VIEW 2: MY PROJECTS (Requirement 3)
+             ================================================================ -->
+        <div class="staff-view-pane" id="view-projects">
+          <div class="staff-work-section">
+            <div class="work-section-header">
+              <div class="work-title-wrap">
+                <h2 class="work-section-title">My Assigned Projects</h2>
+                <p class="work-section-subtitle">Active client initiatives, architectural deliverables, and progress tracking assigned to your account.</p>
+              </div>
+            </div>
+            <div class="projects-grid" id="staff-projects-grid">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ================================================================
+             VIEW 3: MY TASKS & SUBTASKS (Requirement 3)
+             ================================================================ -->
+        <div class="staff-view-pane" id="view-tasks">
+          <div class="staff-work-section">
+            <div class="work-section-header">
+              <div class="work-title-wrap">
+                <h2 class="work-section-title">My Tasks & Subtasks</h2>
+                <p class="work-section-subtitle">Manage deliverable tasks, check off individual subtasks, update workflow states, and upload documents.</p>
+              </div>
+              <div class="work-filter-strip">
+                <div class="filter-pills-group" id="task-filter-pills">
+                  <button class="filter-pill active" data-filter="all">All Tasks (<span id="task-count-all">0</span>)</button>
+                  <button class="filter-pill" data-filter="Backlog">Backlog (<span id="task-count-backlog">0</span>)</button>
+                  <button class="filter-pill" data-filter="To Do">To Do (<span id="task-count-todo">0</span>)</button>
+                  <button class="filter-pill" data-filter="In Progress">In Progress (<span id="task-count-progress">0</span>)</button>
+                  <button class="filter-pill" data-filter="In Review">In Review (<span id="task-count-review">0</span>)</button>
+                  <button class="filter-pill" data-filter="Completed">Completed (<span id="task-count-completed">0</span>)</button>
+                  <button class="filter-pill" data-filter="On Hold">On Hold (<span id="task-count-onhold">0</span>)</button>
+                </div>
+              </div>
+            </div>
+            <div class="tasks-cards-grid" id="staff-tasks-grid">
+              <!-- Dynamically injected task cards -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ================================================================
+             VIEW 4: KANBAN BOARD (Requirement 3)
+             ================================================================ -->
+        <div class="staff-view-pane" id="view-kanban">
+          <div class="staff-work-section">
+            <div class="work-section-header">
+              <div class="work-title-wrap">
+                <h2 class="work-section-title">Interactive Kanban Board</h2>
+                <p class="work-section-subtitle">Drag and drop task cards across workflow columns to update delivery status in real time.</p>
+              </div>
+              <div class="card p-3" style="background:#F8FAFC; border: 1px solid #E2E8F0;">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                  <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span style="font-size:0.75rem; font-weight:700; color:var(--navy-dark); text-transform:uppercase;">Board Filters:</span>
+                    <select class="form-control form-control-sm" id="staff-filter-kanban-project" style="width:200px;">
+                      <option value="all">All Projects</option>
+                    </select>
+                    <select class="form-control form-control-sm" id="staff-filter-kanban-priority" style="width:130px;">
+                      <option value="all">All Priorities</option>
+                      <option value="Low">Low</option>
+                      <option value="Medium">Medium</option>
+                      <option value="High">High</option>
+                      <option value="Urgent">Urgent</option>
+                    </select>
+                  </div>
+                  <div style="font-size: 0.74rem; color: #64748B;">
+                    Drag tasks across columns to immediately update backend status
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="kanban-board-container" id="staff-kanban-board">
+              <!-- Backlog -->
+              <div class="kanban-column kanban-col-backlog" data-status="Backlog">
+                <div class="kanban-column-header">
+                  <span class="kanban-column-title">
+                    <span style="width:8px; height:8px; border-radius:50%; background:#64748B; display:inline-block;"></span>
+                    Backlog
+                  </span>
+                  <span class="kanban-column-counter" id="staff-counter-kanban-backlog">0</span>
+                </div>
+                <div class="kanban-cards-list" data-status="Backlog" id="staff-kanban-list-backlog"></div>
+              </div>
+
+              <!-- To Do -->
+              <div class="kanban-column kanban-col-todo" data-status="To Do">
+                <div class="kanban-column-header">
+                  <span class="kanban-column-title">
+                    <span style="width:8px; height:8px; border-radius:50%; background:#2563EB; display:inline-block;"></span>
+                    To Do
+                  </span>
+                  <span class="kanban-column-counter" id="staff-counter-kanban-todo">0</span>
+                </div>
+                <div class="kanban-cards-list" data-status="To Do" id="staff-kanban-list-todo"></div>
+              </div>
+
+              <!-- In Progress -->
+              <div class="kanban-column kanban-col-inprogress" data-status="In Progress">
+                <div class="kanban-column-header">
+                  <span class="kanban-column-title">
+                    <span style="width:8px; height:8px; border-radius:50%; background:#D97706; display:inline-block;"></span>
+                    In Progress
+                  </span>
+                  <span class="kanban-column-counter" id="staff-counter-kanban-inprogress">0</span>
+                </div>
+                <div class="kanban-cards-list" data-status="In Progress" id="staff-kanban-list-inprogress"></div>
+              </div>
+
+              <!-- In Review -->
+              <div class="kanban-column kanban-col-inreview" data-status="In Review">
+                <div class="kanban-column-header">
+                  <span class="kanban-column-title">
+                    <span style="width:8px; height:8px; border-radius:50%; background:#7C3AED; display:inline-block;"></span>
+                    In Review
+                  </span>
+                  <span class="kanban-column-counter" id="staff-counter-kanban-inreview">0</span>
+                </div>
+                <div class="kanban-cards-list" data-status="In Review" id="staff-kanban-list-inreview"></div>
+              </div>
+
+              <!-- Completed -->
+              <div class="kanban-column kanban-col-completed" data-status="Completed">
+                <div class="kanban-column-header">
+                  <span class="kanban-column-title">
+                    <span style="width:8px; height:8px; border-radius:50%; background:#059669; display:inline-block;"></span>
+                    Completed
+                  </span>
+                  <span class="kanban-column-counter" id="staff-counter-kanban-completed">0</span>
+                </div>
+                <div class="kanban-cards-list" data-status="Completed" id="staff-kanban-list-completed"></div>
+              </div>
+
+              <!-- On Hold -->
+              <div class="kanban-column kanban-col-onhold" data-status="On Hold">
+                <div class="kanban-column-header">
+                  <span class="kanban-column-title">
+                    <span style="width:8px; height:8px; border-radius:50%; background:#DC2626; display:inline-block;"></span>
+                    On Hold
+                  </span>
+                  <span class="kanban-column-counter" id="staff-counter-kanban-onhold">0</span>
+                </div>
+                <div class="kanban-cards-list" data-status="On Hold" id="staff-kanban-list-onhold"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================================================================
+             VIEW 5: GANTT TIMELINE (Requirement 3)
+             ================================================================ -->
+        <div class="staff-view-pane" id="view-gantt">
+          <div class="staff-work-section">
+            <div class="work-section-header">
+              <div class="work-title-wrap">
+                <h2 class="work-section-title">Gantt Timeline Schedule</h2>
+                <p class="work-section-subtitle">Visual project milestones, dependency mapping, and timeline execution roadmap.</p>
+              </div>
+            </div>
+            <div id="pane-tab-my-gantt">
+              <!-- Dynamically populated by WorkPulseGantt via staff.js -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ================================================================
+             VIEW 6: DAILY WORK REPORTS (Requirement 3)
+             ================================================================ -->
+        <div class="staff-view-pane" id="view-reports">
+          <div class="staff-work-section">
+            <div class="work-section-header">
+              <div class="work-title-wrap">
+                <h2 class="work-section-title">Daily Work & Project Reporting</h2>
+                <p class="work-section-subtitle">Log daily accomplishments, attach deliverables, and maintain executive review records.</p>
+              </div>
+            </div>
+
+            <div class="report-split-layout">
+              <!-- Submit Form -->
+              <div class="report-form-card">
+                <div class="report-card-head">
+                  <h3>Record Daily Work Report</h3>
+                  <p>Log your project progress and upload project documents, designs, or files for Admin review.</p>
+                </div>
+                <form id="staff-daily-report-form">
+                  <div class="row g-3">
+                    <div class="col-md-8">
+                      <label class="form-label" for="report-project-title">Project / Work Title <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control" id="report-project-title" required placeholder="e.g., Executive Dashboard Redesign">
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label" for="report-date">Work Date <span class="text-danger">*</span></label>
+                      <input type="date" class="form-control" id="report-date" required>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label" for="report-status">Work Progress Status <span class="text-danger">*</span></label>
+                      <select class="form-control" id="report-status" required>
+                        <option value="Completed">Completed</option>
+                        <option value="In Progress" selected>In Progress</option>
+                        <option value="On Track">On Track</option>
+                        <option value="Blocked">Blocked / Waiting for Input</option>
+                      </select>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label" for="report-related-task">Link to Assigned Task (Optional)</label>
+                      <select class="form-control" id="report-related-task">
+                        <option value="">-- None / General Work --</option>
+                      </select>
+                    </div>
+                    <div class="col-12">
+                      <label class="form-label" for="report-description">Work Accomplished Today <span class="text-danger">*</span></label>
+                      <textarea class="form-control" id="report-description" rows="4" required placeholder="Detail specific modules, features developed, client feedback, or milestones reached..."></textarea>
+                    </div>
+                    <div class="col-12">
+                      <label class="form-label">Attach Project File / Deliverable</label>
+                      <div class="file-drop-zone" id="report-file-dropzone">
+                        <input type="file" id="report-file-input" style="display:none;">
+                        <div id="dropzone-idle-content">
+                          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#64748B; margin-bottom: 6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                          <div style="font-size:0.84rem; font-weight:700; color:var(--navy-dark);">Click or Drag & Drop File</div>
+                          <div style="font-size:0.72rem; color:#94A3B8;">PDF, ZIP, DOCX, PNG, JPG (Max 25MB)</div>
+                        </div>
+                        <div id="dropzone-file-preview" style="display:none;" class="file-preview-strip">
+                          <div class="d-flex align-items-center gap-2">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="file-icon-box"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                            <div class="file-meta-box">
+                              <span class="file-name" id="selected-file-name">document.pdf</span>
+                              <span class="file-size" id="selected-file-size">1.2 MB</span>
+                            </div>
+                          </div>
+                          <button type="button" class="btn btn-ghost btn-sm text-danger" id="btn-remove-attached-file">&times; Remove</button>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-12 text-end">
+                      <button type="submit" class="btn btn-primary btn-sm" id="btn-submit-daily-report">
+                        <span>Submit Daily Work Report</span>
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+
+              <!-- History View -->
+              <div class="submitted-reports-card">
+                <div class="report-card-head">
+                  <h3>My Submitted Daily Reports</h3>
+                  <p>Historical audit trail of your submitted daily progress and deliverables.</p>
+                </div>
+                <div class="table-container" style="max-height: 480px; overflow-y: auto;">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th style="width: 85px;">Date</th>
+                        <th>Project & Task</th>
+                        <th class="text-center" style="width: 95px;">Status</th>
+                        <th style="width: 110px;">Deliverable</th>
+                        <th class="text-end" style="width: 140px;">Executive Review</th>
+                      </tr>
+                    </thead>
+                    <tbody id="staff-reports-tbody">
+                      <!-- Injected via staff.js -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================================================================
+             VIEW 7: MEETINGS & BRIEFINGS (Requirement 3)
+             ================================================================ -->
+        <div class="staff-view-pane" id="view-meetings">
+          <div class="staff-work-section">
+            <div class="work-section-header">
+              <div class="work-title-wrap">
+                <h2 class="work-section-title">Meetings & Executive Briefings</h2>
+                <p class="work-section-subtitle">Strategy syncs, architectural reviews, standups, and corporate video conferences.</p>
+              </div>
+            </div>
+            <div class="meetings-cards-grid" id="staff-meetings-cards-grid">
+              <!-- Dynamically rendered via staff.js -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ================================================================
+             VIEW 8: MY REVIEWS (Requirement 3)
+             ================================================================ -->
+        <div class="staff-view-pane" id="view-reviews">
+          <div class="staff-work-section">
+            <div class="work-section-header">
+              <div class="work-title-wrap">
+                <h2 class="work-section-title">Daily Works Reviews</h2>
+                <p class="work-section-subtitle">Executive evaluations, client deliverable ratings, and administrative feedback.</p>
+              </div>
+            </div>
+            <div class="reviews-stream-grid" id="staff-reviews-stream-grid">
+              <!-- Dynamically populated via staff.js -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ================================================================
+             VIEW 9: PROJECT COMMENTS & UPDATES (Requirement 3)
+             ================================================================ -->
+        <div class="staff-view-pane" id="view-updates">
+          <div class="staff-work-section">
+            <div class="work-section-header">
+              <div class="work-title-wrap">
+                <h2 class="work-section-title">Project Comments & Discussion Updates</h2>
+                <p class="work-section-subtitle">Real-time team dialogue, design critiques, deliverable feedback, and task execution history.</p>
+              </div>
+            </div>
+            <div id="staff-project-updates-list">
+              <!-- Populated dynamically via staff.js -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ================================================================
+             VIEW 10: ATTENDANCE & SHIFT STOPWATCH (Requirement 4)
+             ================================================================ -->
+        <div class="staff-view-pane" id="view-attendance">
+          
+          <!-- Desk Check-in & Real-Time Stopwatch Card -->
+          <section class="checkin-master-card" id="checkin-card">
+            
+            <!-- Left side: Clock & GPS status -->
+            <div class="clock-display-side">
+              <span style="font-size: 0.74rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--royal-blue);">Real-Time Corporate Attendance Punch</span>
+              <div class="current-live-time" id="staff-live-clock">09:02:45 AM</div>
+              <div class="current-live-date" id="staff-live-date">Monday, September 21, 2026</div>
+
+              <!-- GPS Verification Status Box -->
+              <div class="gps-status-box" id="gps-status-container">
+                <div class="gps-icon-circle" id="gps-icon-badge">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                </div>
+                <div class="gps-meta-text" style="flex: 1;">
+                  <div class="gps-label" id="gps-status-label">Location Attendance</div>
+                  <div class="gps-coord" id="gps-status-coords">Turn ON device Location and click Record Attendance</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right side: Clock-in Action & Stopwatch -->
+            <div class="punch-action-side" id="punch-action-container">
+              
+              <!-- STATE A: NOT CHECKED IN -->
+              <div id="state-not-checked-in" style="display: none; text-align: center; width: 100%;">
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
+                  Turn ON Location on your mobile device and click below to record your check-in.
+                </p>
+
+                <!-- Simple error banner (shown only if Location is disabled or permission is denied) -->
+                <div id="location-off-warning" style="display: none; background: #FEF2F2; border: 1px solid #FCA5A5; color: #991B1B; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 600; margin-bottom: 14px; align-items: center; justify-content: space-between; gap: 10px; text-align: left;">
+                  <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    <span id="location-off-warning-text">Location is disabled or permission denied. Please enable Location Services and allow browser location access.</span>
+                  </div>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-retry-gps" style="font-size: 0.74rem; padding: 4px 10px; background: #fff; color: #991B1B; border-color: #FCA5A5; white-space: nowrap;">
+                    <span>Try Again</span>
+                  </button>
+                </div>
+
+                <button class="btn-clockin-big" id="btn-clockin-trigger">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  <span>Record Attendance (Self Check-In)</span>
+                </button>
+                <div class="auto-checkout-alert-strip">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  <span>Policy: Shift remains active until manual checkout</span>
+                </div>
+              </div>
+
+              <!-- STATE B: SHIFT ACTIVE -->
+              <div id="state-checked-in" style="display: block; text-align: center; width: 100%;">
+                <div class="d-flex align-items-center justify-content-center gap-2 flex-wrap" style="margin-bottom: 8px;">
+                  <span class="badge badge-present" id="shift-status-badge" style="font-size: 0.78rem; padding: 4px 12px;">🟢 Shift In Progress</span>
+                  <span class="badge" id="break-status-badge" style="display: none; font-size: 0.78rem; padding: 4px 12px; background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A;">🍱 On Lunch Break</span>
+                </div>
+                
+                <div class="active-shift-stopwatch" id="active-shift-timer">08h 02m 14s</div>
+                
+                <!-- Inactivity Paused Alert Strip -->
+                <div id="inactivity-paused-banner" style="display: none; background: #FFFBEB; border: 1px solid #FCD34D; color: #92400E; border-radius: var(--radius-sm); padding: 10px 14px; margin: 10px auto 14px; max-width: 480px; text-align: center;">
+                  <div style="font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 4px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="10" y1="15" x2="10" y2="9"></line><line x1="14" y1="15" x2="14" y2="9"></line></svg>
+                    <span id="inactivity-banner-title">Inactive — Timer Paused</span>
+                  </div>
+                  <div id="inactivity-banner-desc" style="font-size: 0.78rem; color: #78350F; margin-bottom: 8px;">
+                    Working timer is paused due to inactivity. Inactivity is not counted as working hours.
+                  </div>
+                  <button type="button" class="btn btn-primary btn-sm" id="banner-btn-resume-work" style="font-size: 0.8rem; padding: 5px 18px; font-weight: 700;">
+                    <span>▶️ Resume Work</span>
+                  </button>
+                </div>
+
+                <div style="font-size: 0.82rem; color: var(--navy-dark); font-weight: 600; margin-bottom: 4px;">
+                  Morning Check-in recorded at: <strong id="punch-in-time-display">08:58 AM</strong>
+                </div>
+                <div id="punch-lunch-time-container" style="display: none; font-size: 0.8rem; color: #92400E; font-weight: 600; margin-bottom: 4px;">
+                  Lunch Break: <strong id="punch-lunch-time-display">--:--</strong>
+                </div>
+                <div id="punch-out-time-container" style="display: none; font-size: 0.82rem; color: var(--navy-dark); font-weight: 600; margin-bottom: 4px;">
+                  Shift Check-out recorded at: <strong id="punch-out-time-display">--:--</strong>
+                </div>
+                <div style="font-size: 0.78rem; color: #059669; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                  <span>Check-in Location: <span id="punch-in-location-display">Location unavailable</span></span>
+                  <a id="punch-in-map-link" href="#" target="_blank" rel="noopener noreferrer" style="display: none; align-items: center; gap: 3px; color: var(--royal-blue); font-size: 0.74rem; text-decoration: underline; margin-left: 4px;">
+                    <span>View on Map &rarr;</span>
+                  </a>
+                  <button type="button" class="btn btn-ghost btn-sm" id="btn-refresh-active-location" style="font-size: 0.7rem; padding: 2px 6px; color: var(--royal-blue); margin-left: 4px; display: inline-flex; align-items: center; gap: 3px;" title="Refresh device location">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                    <span>Refresh</span>
+                  </button>
+                </div>
+
+                <div class="auto-checkout-alert-strip" style="margin-bottom: 14px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  <span id="shift-policy-strip-text">Shift is active until manual checkout</span>
+                </div>
+
+                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                  <button class="btn btn-secondary btn-sm" id="btn-manual-checkout" style="font-size: 0.78rem;">
+                    <span>Check Out Shift (Manual)</span>
+                  </button>
+                  <button class="btn btn-secondary btn-sm" id="btn-lunch-break" style="font-size: 0.78rem; background: #FFFBEB; border-color: #FCD34D; color: #92400E;" title="Start or End Lunch Break">
+                    <span>🍱 Start Lunch Break</span>
+                  </button>
+                  <button class="btn btn-secondary btn-sm" id="btn-repunch-checkin" style="font-size: 0.78rem; background: rgba(29, 95, 143, 0.08); color: var(--royal-blue); border-color: rgba(29, 95, 143, 0.25);" title="Update attendance with your current location">
+                    <span>🔄 Re-Punch Location</span>
+                  </button>
+                  <button class="btn btn-ghost btn-sm" id="btn-reset-attendance" style="font-size: 0.74rem; color: var(--text-muted);" title="Reset today's attendance to test fresh self check-in">
+                    <span>Reset Today's Attendance</span>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+          </section>
+
+          <!-- Monthly Attendance KPI Strip -->
+          <div class="staff-stats-strip" id="staff-stats-strip">
+            <div class="staff-kpi-card">
+              <div class="kpi-label">Working Days</div>
+              <div class="kpi-val" id="my-kpi-working-days" style="color: var(--navy-dark);">--</div>
+              <div style="font-size: 0.7rem; color: var(--text-muted);" id="my-kpi-working-days-sub">Loading...</div>
+            </div>
+            <div class="staff-kpi-card" style="border-bottom: 3px solid var(--color-present);">
+              <div class="kpi-label" style="color: var(--color-present);">🟢 Present</div>
+              <div class="kpi-val" id="my-kpi-present" style="color: var(--color-present);">0</div>
+              <div style="font-size: 0.7rem; color: var(--text-muted);">Full working days</div>
+            </div>
+            <div class="staff-kpi-card" style="border-bottom: 3px solid var(--color-halfday);">
+              <div class="kpi-label" style="color: var(--color-halfday);">🟤 Half Day</div>
+              <div class="kpi-val" id="my-kpi-halfday" style="color: var(--color-halfday);">0</div>
+              <div style="font-size: 0.7rem; color: var(--text-muted);">4-hour shift</div>
+            </div>
+            <div class="staff-kpi-card" style="border-bottom: 3px solid var(--color-leave);">
+              <div class="kpi-label" style="color: var(--color-leave);">🔴 Leave</div>
+              <div class="kpi-val" id="my-kpi-leave" style="color: var(--color-leave);">0</div>
+              <div style="font-size: 0.7rem; color: var(--text-muted);">Approved absence</div>
+            </div>
+            <div class="staff-kpi-card" style="border-bottom: 3px solid var(--color-wfh);">
+              <div class="kpi-label" style="color: var(--color-wfh);">🟠 WFH</div>
+              <div class="kpi-val" id="my-kpi-wfh" style="color: var(--color-wfh);">0</div>
+              <div style="font-size: 0.7rem; color: var(--text-muted);">Remote office</div>
+            </div>
+            <div class="staff-kpi-card" style="background: var(--navy-dark); color: #FFFFFF;">
+              <div class="kpi-label" style="color: var(--gold-soft);">Attendance %</div>
+              <div class="kpi-val" id="my-kpi-pct" style="color: var(--gold-primary);">0.00%</div>
+              <div style="font-size: 0.7rem; color: rgba(255,255,255,0.7);">Corporate standard</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ================================================================
+             VIEW 11: ATTENDANCE CALENDAR (Requirement 4)
+             ================================================================ -->
+        <div class="staff-view-pane" id="view-calendar">
+          <section class="personal-calendar-card">
+            <div class="calendar-top-bar">
+              <div class="calendar-title-wrap">
+                <h3>Personal Attendance Calendar</h3>
+                <p>Click any calendar date to view precise check-in/out timestamps and GPS location notes.</p>
+              </div>
+              
+              <!-- Month Switcher -->
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <button class="btn btn-secondary btn-sm" id="btn-prev-month">&larr; Previous</button>
+                <div style="font-family: var(--font-serif); font-size: 1.05rem; font-weight: 700; color: var(--navy-dark); padding: 0 10px;" id="calendar-current-month-label">
+                  Loading...
+                </div>
+                <button class="btn btn-secondary btn-sm" id="btn-next-month">Next &rarr;</button>
+                <button class="btn btn-secondary btn-sm" id="btn-print-staff-calendar" title="Print Monthly Timesheet">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                  <span>Print Timesheet</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Exact Color Legend Bar -->
+            <div class="calendar-legend-bar">
+              <div class="legend-item"><span class="legend-dot" style="background: var(--color-present);"></span><span>Present (Full Day)</span></div>
+              <div class="legend-item"><span class="legend-dot" style="background: var(--color-halfday);"></span><span>Half Day</span></div>
+              <div class="legend-item"><span class="legend-dot" style="background: var(--color-leave);"></span><span>Leave</span></div>
+              <div class="legend-item"><span class="legend-dot" style="background: var(--color-wfh);"></span><span>Work From Home</span></div>
+              <div class="legend-item"><span class="legend-dot" style="background: var(--color-sunday);"></span><span>Sunday (Weekly Off)</span></div>
+              <div class="legend-item"><span class="legend-dot" style="background: #FFFFFF; border: 1.5px solid #D9E2EC;"></span><span>Not Marked</span></div>
+            </div>
+
+            <!-- 7 Column Calendar Grid -->
+            <div class="staff-calendar-grid" id="staff-calendar-grid">
+              <!-- Injected via js/staff.js -->
+            </div>
+          </section>
+        </div>
+
+        <!-- ================================================================
+             VIEW 12: LEAVE REQUESTS (Requirement 4)
+             ================================================================ -->
+        <div class="staff-view-pane" id="view-leaves">
+          <div class="app-box-card">
+            <div class="app-box-header">
+              <div class="d-flex align-items-center gap-2">
+                <h3 class="app-box-title">My Leave History & Applications</h3>
+                <span class="badge" id="my-leaves-total-badge" style="background:#E2E8F0; color:#1E293B; font-size:0.75rem; padding:3px 8px; font-weight:600;">0 requests</span>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-outline-secondary btn-sm" id="btn-refresh-my-leaves" title="Refresh leave records" style="font-size: 0.78rem;">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                  <span>Sync</span>
+                </button>
+                <button class="btn btn-primary btn-sm" id="btn-card-apply-leave" style="font-size: 0.78rem;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                  <span>Submit Leave Application</span>
+                </button>
+              </div>
+            </div>
+            <div class="table-container">
+              <table class="table table-hover align-middle">
+                <thead>
+                  <tr>
+                    <th style="width: 140px;">Leave Type</th>
+                    <th style="width: 120px;">Start Date</th>
+                    <th style="width: 120px;">End Date</th>
+                    <th class="text-center" style="width: 110px;">Total Days</th>
+                    <th>Reason & Admin Decision</th>
+                    <th style="width: 120px;">Applied On</th>
+                    <th class="text-end" style="width: 140px;">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="my-leaves-tbody">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================================================================
+             VIEW 13: WORK FROM HOME (Requirement 4)
+             ================================================================ -->
+        <div class="staff-view-pane" id="view-wfh">
+          <div class="app-box-card">
+            <div class="app-box-header">
+              <div class="d-flex align-items-center gap-2">
+                <h3 class="app-box-title">My Work From Home Requests</h3>
+                <span class="badge" id="my-wfh-total-badge" style="background:#E2E8F0; color:#1E293B; font-size:0.75rem; padding:3px 8px; font-weight:600;">0 requests</span>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-outline-secondary btn-sm" id="btn-refresh-my-wfh" title="Refresh WFH records" style="font-size: 0.78rem;">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                  <span>Sync</span>
+                </button>
+                <button class="btn btn-primary btn-sm" id="btn-card-apply-wfh" style="font-size: 0.78rem; background:#EA580C; border-color:#EA580C;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                  <span>Request Remote Work</span>
+                </button>
+              </div>
+            </div>
+            <div class="table-container">
+              <table class="table table-hover align-middle">
+                <thead>
+                  <tr>
+                    <th style="width: 140px; white-space: nowrap;">Requested Date</th>
+                    <th style="min-width: 220px;">Reason & Justification</th>
+                    <th class="text-center" style="width: 130px; white-space: nowrap;">Work Duration</th>
+                    <th class="text-center" style="width: 140px; white-space: nowrap;">Status</th>
+                    <th class="text-end" style="width: 130px; white-space: nowrap;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="my-wfh-tbody">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================================================================
+             VIEW 14: ASSIGNED LEADS - CRM (Requirement 5)
+             ================================================================ -->
+        <div class="staff-view-pane" id="view-leads">
+          <div class="staff-work-section">
+            <div class="work-section-header">
+              <div class="work-title-wrap">
+                <h2 class="work-section-title">My Assigned Leads (CRM)</h2>
+                <p class="work-section-subtitle">Telecaller pipeline: client inquiries assigned directly to your desk for outbound calling and qualification.</p>
+              </div>
+            </div>
+            <div class="table-container">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Lead Name</th>
+                    <th>Mobile</th>
+                    <th>Source</th>
+                    <th>Status</th>
+                    <th>Last Contact</th>
+                    <th class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="staff-leads-tbody">
+                  <!-- Injected via staff.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================================================================
+             VIEW 15: GENERAL & OFFICE HUB (Requirement 5)
+             ================================================================ -->
+        <div class="staff-view-pane" id="view-misc">
+          <div class="staff-work-section" id="pane-tab-my-misc">
+            
+            <!-- Section Header -->
+            <div class="work-section-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+              <div class="work-title-wrap">
+                <h2 class="work-section-title">General & Office Hub</h2>
+                <p class="work-section-subtitle">Track assigned requests, report maintenance issues, view allocated office assets, read internal memos, and access corporate documents.</p>
+              </div>
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <button class="btn btn-secondary btn-sm" id="btn-staff-new-request">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                  <span>Submit Request</span>
+                </button>
+                <button class="btn btn-primary btn-sm" id="btn-staff-report-maint">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+                  <span>Report Issue</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- KPI Metric Cards Grid -->
+            <div class="staff-misc-kpi-grid">
+              <div class="staff-misc-kpi-card active" data-staff-subtab-target="requests" role="button" tabindex="0">
+                <div class="kpi-label">General Requests</div>
+                <div class="kpi-val" id="staff-misc-kpi-reqs">0</div>
+                <div class="kpi-sub" id="staff-misc-kpi-reqs-sub">0 Pending Review</div>
+              </div>
+              <div class="staff-misc-kpi-card" data-staff-subtab-target="assets" role="button" tabindex="0">
+                <div class="kpi-label">Assigned Assets</div>
+                <div class="kpi-val" id="staff-misc-kpi-assets" style="color: var(--royal-blue, #1D5F8F);">0</div>
+                <div class="kpi-sub">Hardware in possession</div>
+              </div>
+              <div class="staff-misc-kpi-card" data-staff-subtab-target="maintenance" role="button" tabindex="0">
+                <div class="kpi-label">Maintenance Requests</div>
+                <div class="kpi-val" id="staff-misc-kpi-maint" style="color: #DC2626;">0</div>
+                <div class="kpi-sub" id="staff-misc-kpi-maint-sub">0 Open Issues</div>
+              </div>
+              <div class="staff-misc-kpi-card" data-staff-subtab-target="notes" role="button" tabindex="0">
+                <div class="kpi-label">Internal Notes</div>
+                <div class="kpi-val" id="staff-misc-kpi-notes" style="color: #7C3AED;">0</div>
+                <div class="kpi-sub" id="staff-misc-kpi-notes-sub">0 Pinned Memos</div>
+              </div>
+              <div class="staff-misc-kpi-card" data-staff-subtab-target="documents" role="button" tabindex="0">
+                <div class="kpi-label">General Documents</div>
+                <div class="kpi-val" id="staff-misc-kpi-docs" style="color: #059669;">0</div>
+                <div class="kpi-sub">Policies & handbooks</div>
+              </div>
+            </div>
+
+            <!-- Subtab Navigation Strip -->
+            <div class="work-filter-strip mb-3">
+              <div class="filter-pills-group" id="staff-misc-subtabs">
+                <button class="filter-pill active" data-staff-subtab="requests">
+                  <span>General Requests</span>
+                  <span class="badge ms-1" id="staff-badge-requests" style="font-size: 0.68rem; background: rgba(15, 39, 68, 0.08); color: var(--navy-dark, #0A192F);">0</span>
+                </button>
+                <button class="filter-pill" data-staff-subtab="assets">
+                  <span>Office Assets</span>
+                  <span class="badge ms-1" id="staff-badge-assets" style="font-size: 0.68rem; background: rgba(15, 39, 68, 0.08); color: var(--navy-dark, #0A192F);">0</span>
+                </button>
+                <button class="filter-pill" data-staff-subtab="maintenance">
+                  <span>Maintenance Requests</span>
+                  <span class="badge ms-1" id="staff-badge-maintenance" style="font-size: 0.68rem; background: rgba(15, 39, 68, 0.08); color: var(--navy-dark, #0A192F);">0</span>
+                </button>
+                <button class="filter-pill" data-staff-subtab="notes">
+                  <span>Internal Notes</span>
+                  <span class="badge ms-1" id="staff-badge-notes" style="font-size: 0.68rem; background: rgba(15, 39, 68, 0.08); color: var(--navy-dark, #0A192F);">0</span>
+                </button>
+                <button class="filter-pill" data-staff-subtab="documents">
+                  <span>General Documents</span>
+                  <span class="badge ms-1" id="staff-badge-documents" style="font-size: 0.68rem; background: rgba(15, 39, 68, 0.08); color: var(--navy-dark, #0A192F);">0</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- SUBTAB CONTENT PANES -->
+            <!-- 1. GENERAL REQUESTS -->
+            <div class="staff-misc-pane active" id="staff-pane-requests">
+              <div class="table-container">
+                <table class="table wp-table mb-0">
+                  <thead>
+                    <tr>
+                      <th style="width: 120px;">Request ID</th>
+                      <th style="min-width: 220px;">Title & Description</th>
+                      <th style="width: 140px;">Category</th>
+                      <th style="width: 110px; text-align: center;">Priority</th>
+                      <th style="width: 120px; text-align: center;">Status</th>
+                      <th style="width: 130px;">Needed Date</th>
+                      <th style="width: 100px; text-align: right;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="staff-tbody-requests">
+                    <!-- Populated dynamically via staff.js -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- 2. OFFICE ASSETS -->
+            <div class="staff-misc-pane" id="staff-pane-assets" style="display: none;">
+              <div class="table-container">
+                <table class="table wp-table mb-0">
+                  <thead>
+                    <tr>
+                      <th style="width: 140px;">Asset Tag</th>
+                      <th style="min-width: 220px;">Hardware Name & Details</th>
+                      <th style="width: 140px;">Category</th>
+                      <th style="width: 110px; text-align: center;">Condition</th>
+                      <th style="width: 130px;">Assigned Date</th>
+                      <th style="width: 130px;">Return Date</th>
+                      <th style="width: 110px; text-align: right;">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="staff-tbody-assets">
+                    <!-- Populated dynamically via staff.js -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- 3. MAINTENANCE REQUESTS -->
+            <div class="staff-misc-pane" id="staff-pane-maintenance" style="display: none;">
+              <div class="table-container">
+                <table class="table wp-table mb-0">
+                  <thead>
+                    <tr>
+                      <th style="width: 120px;">Ticket ID</th>
+                      <th style="min-width: 220px;">Issue & Location</th>
+                      <th style="width: 140px;">Category</th>
+                      <th style="width: 110px; text-align: center;">Priority</th>
+                      <th style="width: 130px;">Reported Date</th>
+                      <th style="width: 120px; text-align: center;">Status</th>
+                      <th style="width: 100px; text-align: right;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="staff-tbody-maintenance">
+                    <!-- Populated dynamically via staff.js -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- 4. INTERNAL NOTES & NOTICES -->
+            <div class="staff-misc-pane" id="staff-pane-notes" style="display: none;">
+              <div class="table-container">
+                <table class="table wp-table mb-0">
+                  <thead>
+                    <tr>
+                      <th style="width: 100px; text-align: center;">Notice</th>
+                      <th style="min-width: 240px;">Memo Title & Content</th>
+                      <th style="width: 140px;">Category</th>
+                      <th style="width: 130px;">Reminder Date</th>
+                      <th style="width: 110px; text-align: center;">Priority</th>
+                      <th style="width: 120px; text-align: right;">Audience</th>
+                    </tr>
+                  </thead>
+                  <tbody id="staff-tbody-notes">
+                    <!-- Populated dynamically via staff.js -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- 5. GENERAL DOCUMENTS -->
+            <div class="staff-misc-pane" id="staff-pane-documents" style="display: none;">
+              <div class="table-container">
+                <table class="table wp-table mb-0">
+                  <thead>
+                    <tr>
+                      <th style="min-width: 260px;">Document Title & Summary</th>
+                      <th style="width: 150px;">Category</th>
+                      <th style="width: 130px;">Effective Date</th>
+                      <th style="width: 120px; text-align: center;">Classification</th>
+                      <th style="width: 120px; text-align: right;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="staff-tbody-documents">
+                    <!-- Populated dynamically via staff.js -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ================================================================
+             VIEW 16: PROFILE & SETTINGS (Requirement 6)
+             ================================================================ -->
+        <div class="staff-view-pane" id="view-profile">
+          <div class="staff-profile-layout">
+            
+            <!-- Left Card: Personal Profile Information -->
+            <div class="profile-card">
+              <div class="profile-card-header">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--royal-blue);"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <h3 class="profile-card-title">Employee Profile Details</h3>
+              </div>
+
+              <!-- Profile Photo Header -->
+              <div class="d-flex align-items-center gap-3 mb-4 p-3" style="background:#F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px;">
+                <div class="staff-avatar-circle" id="profile-page-avatar" style="width: 64px; height: 64px; font-size: 1.4rem;">
+                  --
+                </div>
+                <div>
+                  <div style="font-weight: 700; font-size: 1.05rem; color: var(--navy-dark);" id="profile-page-name">Staff Member</div>
+                  <div style="font-size: 0.8rem; color: #64748B;" id="profile-page-role">Software Engineer</div>
+                  <div style="font-size: 0.74rem; color: var(--royal-blue); font-weight: 700; margin-top: 2px;" id="profile-page-id">ID: WP-1001</div>
+                </div>
+              </div>
+
+              <form id="staff-profile-update-form">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label" for="profile-input-name">Full Legal Name</label>
+                    <input type="text" class="form-control" id="profile-input-name" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="profile-input-email">Corporate Email Address</label>
+                    <input type="email" class="form-control" id="profile-input-email" readonly disabled style="background:#F1F5F9; color:#64748B;">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="profile-input-position">Position / Designation</label>
+                    <input type="text" class="form-control" id="profile-input-position" readonly disabled style="background:#F1F5F9; color:#64748B;">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="profile-input-mobile">Contact Mobile Phone</label>
+                    <input type="tel" class="form-control" id="profile-input-mobile" placeholder="+91 9876543210">
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label" for="profile-input-address">Residential Address</label>
+                    <textarea class="form-control" id="profile-input-address" rows="2" placeholder="Full residential address..."></textarea>
+                  </div>
+                  <div class="col-12 text-end">
+                    <button type="submit" class="btn btn-primary btn-sm" id="btn-save-staff-profile">
+                      <span>Save Profile Changes</span>
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <!-- Right Card: Security & Password Update -->
+            <div class="profile-card">
+              <div class="profile-card-header">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #D97706;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <h3 class="profile-card-title">Security & Account Access</h3>
+              </div>
+
+              <form id="staff-password-update-form">
+                <div class="mb-3">
+                  <label class="form-label" for="staff-current-pw">Current Password <span class="text-danger">*</span></label>
+                  <input type="password" class="form-control" id="staff-current-pw" required placeholder="Enter current password">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" for="staff-new-pw">New Password <span class="text-danger">*</span></label>
+                  <input type="password" class="form-control" id="staff-new-pw" required minlength="6" placeholder="Minimum 6 characters">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" for="staff-confirm-pw">Confirm New Password <span class="text-danger">*</span></label>
+                  <input type="password" class="form-control" id="staff-confirm-pw" required minlength="6" placeholder="Re-enter new password">
+                </div>
+                <div class="text-end">
+                  <button type="submit" class="btn btn-secondary btn-sm" id="btn-update-staff-pw" style="background:var(--navy-dark); color:#FFFFFF; border-color:var(--navy-dark);">
+                    <span>Update Password</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Portal Footer Credit -->
+      <footer class="app-portal-footer" aria-label="Portal attribution">
+        <p class="portal-credit-text">Made by UnikCorp</p>
+      </footer>
+    </main>
+  </div>
+
+  <!-- ====================================================================
+       MODAL 1: APPLY FOR LEAVE
+       ==================================================================== -->
+  <div class="modal-backdrop" id="apply-leave-modal" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-lg" style="max-width: 600px;">
+      <div class="modal-header">
+        <div class="d-flex align-items-center gap-2">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+          <span class="modal-title">Submit Corporate Leave Application</span>
+        </div>
+        <button class="modal-close" id="btn-close-leave-modal" aria-label="Close">&times;</button>
+      </div>
+      <form id="apply-leave-form">
+        <div class="modal-body" style="padding: 24px;">
+          <div class="alert alert-info mb-3" style="font-size: 0.8rem; background: rgba(29, 95, 143, 0.08); border-color: var(--royal-blue); color: var(--navy-dark);">
+            Once approved by an executive administrator, your approved leave days will automatically turn <strong>Red (🔴 Leave)</strong> in your monthly attendance calendar.
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label" for="leave-start-date">Start Date <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" id="leave-start-date" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="leave-end-date">End Date <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" id="leave-end-date" required>
+            </div>
+            <div class="col-12" id="leave-days-calc-container">
+              <div style="font-size: 0.78rem; font-weight: 600; color: var(--royal-blue); background: #F0F7FF; border: 1px solid #BAE6FD; padding: 6px 12px; border-radius: 6px;" id="leave-days-count-display">
+                Duration: <strong>1 Day</strong>
+              </div>
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="leave-type">Leave Category <span class="text-danger">*</span></label>
+              <select class="form-control" id="leave-type" required>
+                <option value="Casual Leave">Casual Leave</option>
+                <option value="Annual Leave">Annual Paid Leave</option>
+                <option value="Medical Leave">Medical / Health Leave</option>
+                <option value="Compassionate Leave">Compassionate Leave</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="leave-reason">Reason for Absence <span class="text-danger">*</span></label>
+              <textarea class="form-control" id="leave-reason" rows="3" required placeholder="Briefly state reason for leave..."></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer d-flex justify-content-between">
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-cancel-leave">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm">Submit Leave Application</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL 2: REQUEST WORK FROM HOME
+       ==================================================================== -->
+  <div class="modal-backdrop" id="apply-wfh-modal" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-lg" style="max-width: 580px;">
+      <div class="modal-header">
+        <div class="d-flex align-items-center gap-2">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+          <span class="modal-title">Request Work From Home (WFH)</span>
+        </div>
+        <button class="modal-close" id="btn-close-wfh-modal" aria-label="Close">&times;</button>
+      </div>
+      <form id="apply-wfh-form">
+        <div class="modal-body" style="padding: 24px;">
+          <div class="alert alert-info mb-3" style="font-size: 0.8rem; background: rgba(234, 88, 12, 0.08); border-color: var(--color-wfh); color: #9A3412;">
+            Once approved by an executive administrator, your remote work day will automatically turn <strong>Orange (🟠 Work From Home)</strong> in your attendance calendar.
+          </div>
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label" for="wfh-date">Target Date <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" id="wfh-date" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="wfh-reason">Business Justification <span class="text-danger">*</span></label>
+              <textarea class="form-control" id="wfh-reason" rows="3" required placeholder="Describe remote focus tasks or client engagements..."></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer d-flex justify-content-between">
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-cancel-wfh">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm" style="background:#EA580C; border-color:#EA580C;">Submit WFH Request</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL 2B: WORK FROM HOME REQUEST DETAILS
+       ==================================================================== -->
+  <div class="modal-backdrop" id="wfh-detail-modal" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-md" style="max-width: 580px;">
+      <div class="modal-header" style="padding: 16px 24px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+        <div class="d-flex align-items-center gap-2">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EA580C" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+          <span class="modal-title" style="font-weight: 700; font-size: 1rem; color: var(--navy-dark);">Work From Home Details</span>
+        </div>
+        <button type="button" class="modal-close" id="btn-close-wfh-detail" aria-label="Close" style="background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #64748B;">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 24px;" id="wfh-detail-content">
+        <!-- Dynamically populated via staff.js -->
+      </div>
+      <div class="modal-footer" style="padding: 14px 24px; background: #F8FAFC; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary btn-sm" id="btn-dismiss-wfh-detail">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL 3: DAY DETAIL POPUP
+       ==================================================================== -->
+  <div class="modal-backdrop" id="day-detail-modal" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-sm" style="max-width: 480px;">
+      <div class="modal-header">
+        <span class="modal-title" id="day-detail-title">Timesheet Details</span>
+        <button class="modal-close" id="btn-close-day-detail" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body" id="day-detail-body">
+        <!-- Injected dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" id="btn-close-day-foot">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL 4: EARLY CHECKOUT CONFIRMATION
+       ==================================================================== -->
+  <div class="modal-backdrop" id="checkout-confirm-modal" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-sm" style="max-width: 440px;">
+      <div class="modal-header" style="border-bottom: 2px solid #D97706;">
+        <span class="modal-title" style="color: #B45309;">Confirm Shift Checkout</span>
+        <button class="modal-close" id="btn-close-checkout-modal" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 20px;">
+        <div style="font-size: 0.88rem; color: var(--navy-dark); margin-bottom: 12px; line-height: 1.5;">
+          Are you ready to clock out and end your active shift for the day?
+        </div>
+        <div style="background: #FFFBEB; border: 1px solid #FDE68A; border-radius: var(--radius-sm); padding: 12px; font-size: 0.8rem; color: #92400E; margin-bottom: 14px;">
+          <div style="font-weight: 700; margin-bottom: 4px;">Shift Calculation:</div>
+          <div>Your total active hours will be calculated up to the current moment and logged into your timesheet.</div>
+        </div>
+        <div style="font-size: 0.78rem; color: var(--text-muted);">
+          Recorded shift duration will be logged into your personal monthly timesheet.
+        </div>
+      </div>
+      <div class="modal-footer d-flex justify-content-between">
+        <button type="button" class="btn btn-secondary btn-sm" id="btn-cancel-checkout">Keep Working</button>
+        <button type="button" class="btn btn-primary btn-sm" id="btn-confirm-checkout" style="background:#D97706; border-color:#D97706;">Confirm & Check Out</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL 5: INACTIVITY RESUME SHIFT PROMPT
+       ==================================================================== -->
+  <div class="modal-backdrop" id="inactivity-resume-modal" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-sm" style="max-width: 440px;">
+      <div class="modal-header" style="border-bottom: 2px solid #D97706;">
+        <div class="d-flex align-items-center gap-2">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="10" y1="15" x2="10" y2="9"></line><line x1="14" y1="15" x2="14" y2="9"></line></svg>
+          <span class="modal-title" style="color: #B45309;">Inactive — Timer Paused</span>
+        </div>
+        <button class="modal-close" id="btn-close-inactivity-modal" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 20px;">
+        <div style="font-size: 0.92rem; font-weight: 700; color: var(--navy-dark); margin-bottom: 8px;">
+          You were inactive. Resume your shift?
+        </div>
+        <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 14px;" id="modal-inactive-explanation">
+          Working timer is paused due to inactivity (configured system-wide inactivity or WorkPulse tab inactivity limit reached). The inactive duration will not count toward working hours.
+        </p>
+        <div style="background: #FFFBEB; border: 1px solid #FDE68A; border-radius: var(--radius-sm); padding: 12px; font-size: 0.8rem; color: #92400E; margin-bottom: 8px;">
+          <div>Paused since: <strong id="modal-inactive-start-time">--:--</strong></div>
+          <div id="modal-inactive-reason" style="margin-top: 4px; font-weight: 600; font-size: 0.78rem;">Trigger: System-wide idle (15 continuous minutes)</div>
+          <div style="margin-top: 4px; font-size: 0.74rem;">Note: You are NOT automatically checked out. Click "Resume Work" below to resume tracking working hours immediately.</div>
+        </div>
+      </div>
+      <div class="modal-footer d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-primary" id="modal-btn-resume-work" style="padding: 8px 20px; font-weight: 700;">
+          <span>▶️ Resume Work</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: STAFF PROJECT DETAILS & TASKS VIEW
+       ==================================================================== -->
+  <div class="modal-backdrop" id="staff-project-details-modal" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-xl" style="max-width: 960px; max-height: calc(100vh - 40px); display: flex; flex-direction: column; overflow: hidden; margin: auto;">
+      <div class="modal-header" style="flex-shrink: 0;">
+        <div class="d-flex align-items-center gap-2">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+          <div>
+            <span class="modal-title" id="staff-project-details-title">Project Details</span>
+            <div style="font-size:0.75rem; color:var(--text-muted);" id="staff-project-details-id-display">PRJ-0000000000000</div>
+          </div>
+        </div>
+        <button class="modal-close" id="btn-close-staff-project-details" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 24px; overflow-y: auto; flex: 1; min-height: 0; max-height: calc(100vh - 140px); -webkit-overflow-scrolling: touch;" id="staff-project-details-content">
+        <!-- Dynamically rendered via staff.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: STAFF TASK DETAILS & SUBTASK MANAGEMENT
+       ==================================================================== -->
+  <div class="modal-backdrop" id="task-detail-modal" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-lg" style="max-width: 760px;">
+      <div class="modal-header">
+        <div class="d-flex align-items-center gap-2">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          <span class="modal-title" id="task-modal-title">Task Details</span>
+        </div>
+        <button class="modal-close" id="btn-close-task-modal" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 24px; max-height: calc(85vh - 120px); overflow-y: auto;">
+        <div id="task-modal-content">
+          <!-- Populated via staff.js -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: STAFF TELECALLER LEAD NOTES & STATUS UPDATE
+       ==================================================================== -->
+  <div class="modal-backdrop" id="staff-lead-notes-modal" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-lg" style="max-width: 760px;">
+      <div class="modal-header">
+        <div class="d-flex align-items-center gap-2">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+          <span class="modal-title" id="staff-lead-notes-modal-title">Telecaller Call Log & Follow-up Notes</span>
+        </div>
+        <button class="modal-close" id="btn-close-staff-lead-notes" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 24px; max-height: calc(85vh - 120px); overflow-y: auto;">
+        <div id="staff-lead-notes-modal-content">
+          <!-- Populated dynamically via staff.js -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 9: STAFF SUBMIT GENERAL REQUEST -->
+  <div class="modal-backdrop" id="staff-request-modal" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-lg" style="max-width: 680px;">
+      <form id="staff-request-form">
+        <div class="modal-header">
+          <div class="d-flex align-items-center gap-2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            <span class="modal-title">Submit General Request</span>
+          </div>
+          <button type="button" class="modal-close" id="btn-close-staff-request-modal" aria-label="Close">&times;</button>
+        </div>
+        <div class="modal-body" style="padding: 24px; max-height: calc(85vh - 120px); overflow-y: auto;">
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label class="form-label" for="staff-req-title">Request Title <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="staff-req-title" required placeholder="e.g., Wireless Ergonomic Mouse & Keyboard Set">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="staff-req-category">Category <span class="text-danger">*</span></label>
+              <select class="form-control" id="staff-req-category" required>
+                <option value="IT Equipment" selected>IT Equipment</option>
+                <option value="Stationery & Supplies">Stationery & Supplies</option>
+                <option value="Software License">Software License</option>
+                <option value="Access & Credentials">Access & Credentials</option>
+                <option value="Travel & Expense">Travel & Expense</option>
+                <option value="Facilities">Facilities</option>
+                <option value="HR Services">HR Services</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="staff-req-desc">Details / Business Need / Link <span class="text-danger">*</span></label>
+              <textarea class="form-control" id="staff-req-desc" rows="3" required placeholder="Describe what you need, reason, specifications, or vendor links..."></textarea>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="staff-req-priority">Priority</label>
+              <select class="form-control" id="staff-req-priority">
+                <option value="Low">Low (Within this month)</option>
+                <option value="Medium" selected>Medium (Standard request)</option>
+                <option value="High">High (Needed this week)</option>
+                <option value="Urgent">Urgent (Immediate work blocker)</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="staff-req-date">Needed By Date</label>
+              <input type="date" class="form-control" id="staff-req-date">
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="staff-req-note">Optional Remark for Admin</label>
+              <input type="text" class="form-control" id="staff-req-note" placeholder="Any additional delivery or setup preferences...">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="padding: 16px 24px; background: #F8FAFC; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-cancel-staff-req">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm" id="btn-save-staff-req">Submit Request</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 10: STAFF REPORT MAINTENANCE ISSUE -->
+  <div class="modal-backdrop" id="staff-maint-modal" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-lg" style="max-width: 680px;">
+      <form id="staff-maint-form">
+        <div class="modal-header">
+          <div class="d-flex align-items-center gap-2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+            <span class="modal-title">Report Facility & Maintenance Issue</span>
+          </div>
+          <button type="button" class="modal-close" id="btn-close-staff-maint-modal" aria-label="Close">&times;</button>
+        </div>
+        <div class="modal-body" style="padding: 24px; max-height: calc(85vh - 120px); overflow-y: auto;">
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label class="form-label" for="staff-maint-title">Issue Title <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="staff-maint-title" required placeholder="e.g., Air Conditioner Leaking in Bay 3">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="staff-maint-location">Location / Area <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="staff-maint-location" required placeholder="e.g., Floor 2, Meeting Rm B">
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="staff-maint-desc">Description of Problem <span class="text-danger">*</span></label>
+              <textarea class="form-control" id="staff-maint-desc" rows="3" required placeholder="Describe what is broken, symptoms, or any hazard..."></textarea>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="staff-maint-urgency">Urgency Level</label>
+              <select class="form-control" id="staff-maint-urgency">
+                <option value="Low">Low (Can wait standard queue)</option>
+                <option value="Medium" selected>Medium (Standard attention)</option>
+                <option value="High">High (Impacting daily work)</option>
+                <option value="Critical">Critical (Immediate safety/electrical hazard)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="padding: 16px 24px; background: #F8FAFC; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-cancel-staff-maint">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm" id="btn-save-staff-maint">Submit Report</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 11: STAFF RECORD DETAILS & DISCUSSION MODAL -->
+  <div class="modal-backdrop" id="staff-misc-details-modal" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-lg" style="max-width: 760px;">
+      <div class="modal-header">
+        <div class="d-flex align-items-center gap-2">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+          <span class="modal-title" id="staff-misc-details-modal-title">Record Details & Discussion</span>
+        </div>
+        <button type="button" class="modal-close" id="btn-close-staff-misc-details" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 24px; max-height: calc(85vh - 120px); overflow-y: auto;">
+        <div id="staff-misc-details-modal-content">
+          <!-- Populated dynamically via staff.js -->
+        </div>
+      </div>
+      <div class="modal-footer" style="padding: 14px 24px; background: #F8FAFC; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary btn-sm" id="btn-dismiss-staff-misc-details">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="js/flatpickr.min.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/gantt.js"></script>
+  <script src="js/staff.js"></script>
+</body>
+</html>
